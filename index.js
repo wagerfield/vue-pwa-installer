@@ -3,55 +3,50 @@ function install(Vue) {
   install.installed = true
 
   var installEvent = null
+  var installer = Vue.observable({
+    hasInstalled: false,
+    canInstall: false,
+    choice: null
+  })
 
-  function prompt() {
+  installer.prompt = function prompt() {
     if (installEvent) installEvent.prompt()
   }
 
-  function getter(value) {
-    return {
-      get: function() {
-        return value
-      }
-    }
-  }
-
-  var vm = new Vue({
-    data: {
-      choice: null,
-      canInstall: false,
-      hasInstalled: false
+  Object.defineProperty(Vue.prototype, "$installer", {
+    get: function() {
+      return installer
     }
   })
 
-  if (typeof Vue.prototype.$installer === "undefined") {
-    var installer = Object.create(null)
-    Object.defineProperties(installer, {
-      hasInstalled: getter(vm.hasInstalled),
-      canInstall: getter(vm.canInstall),
-      choice: getter(vm.choice),
-      prompt: getter(prompt)
-    })
-    Object.defineProperty(Vue.prototype, "$installer", getter(installer))
+  function handleUserChoice(choice) {
+    installer.choice = choice.outcome
+  }
+
+  function handleInstallPrompt(event) {
+    installEvent = event
+    installEvent.preventDefault()
+    installEvent.userChoice.then(handleUserChoice)
+    localStorage.hasInstalledPWA = false
+    installer.hasInstalled = false
+    installer.canInstall = true
+  }
+
+  function handleAppInstalled() {
+    localStorage.hasInstalledPWA = true
+    installer.hasInstalled = true
+    installer.canInstall = false
+    installEvent = null
+  }
+
+  function updateHasInstalled() {
+    installer.hasInstalled = localStorage.hasInstalledPWA === "true"
   }
 
   if (typeof window !== "undefined") {
-    window.addEventListener("beforeinstallprompt", function(event) {
-      event.preventDefault()
-      event.userChoice.then(function(choice) {
-        vm.choice = choice.outcome
-      })
-
-      installEvent = event
-
-      vm.canInstall = true
-      vm.hasInstalled = false
-    })
-
-    window.addEventListener("appinstalled", function() {
-      vm.hasInstalled = true
-      vm.canInstall = false
-    })
+    window.addEventListener("beforeinstallprompt", handleInstallPrompt)
+    window.addEventListener("appinstalled", handleAppInstalled)
+    setTimeout(updateHasInstalled, 100)
   }
 }
 
