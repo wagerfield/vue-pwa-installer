@@ -1,4 +1,4 @@
-# Vue Tabbing
+# Vue PWA Installer
 
 Adds an `$installer` interface to [Vue instances][vue-instances] for [installing Progressive Web Apps][app-install-banners].
 
