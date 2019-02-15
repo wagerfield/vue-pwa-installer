@@ -1,6 +1,6 @@
 {
   "name": "vue-pwa-installer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Vue interface for installing Progressive Web Apps.",
   "author": "Matthew Wagerfield <matthew@wagerfield.com>",
   "homepage": "https://github.com/wagerfield/vue-pwa-installer#readme",
