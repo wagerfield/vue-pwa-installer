@@ -1,16 +1,35 @@
 const { createLocalVue, mount } = require("@vue/test-utils")
-const VueInstaller = require("./index")
+const { install, createInstaller } = require("./index")
 
-const localVue = createLocalVue()
+const installerShape = {
+  prompt: expect.any(Function),
+  hasInstalled: false,
+  canInstall: false,
+  choice: null
+}
 
-localVue.use(VueInstaller)
+const wrap = (options) => {
+  const template = "<div/>"
+  const localVue = createLocalVue()
+  localVue.use({ install }, options)
+  return mount({ template }, { localVue })
+}
 
-test(name, () => {
-  const wrapper = mount({
-    template: "<div/>",
-  }, {
-    localVue
-  })
-
+test("install", () => {
+  const wrapper = wrap()
   expect(wrapper.isVueInstance()).toBeTruthy()
+  expect(wrapper.vm.$installer).toMatchObject(installerShape)
+})
+
+test("options", () => {
+  const prototypeKey = "$foo"
+  const wrapper = wrap({ prototypeKey })
+  expect(wrapper.isVueInstance()).toBeTruthy()
+  expect(wrapper.vm[prototypeKey]).toMatchObject(installerShape)
+})
+
+test("createInstaller", () => {
+  const localVue = createLocalVue()
+  const installer = createInstaller(localVue)
+  expect(installer).toMatchObject(installerShape)
 })
